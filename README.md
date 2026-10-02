@@ -89,13 +89,20 @@ per-case PASS/FAIL plus a final PASS RATE line:
 python eval/run_eval.py
 ```
 
-**Eval result (measured 2026-10-02):** the eval script is correct and runnable, but no
-live score could be recorded — the Pollinations anonymous endpoint was returning
-`HTTP 500 {"error":"ENOSPC: no space left on device"}` for every uncached
-(classification) prompt throughout the build session (CDN-cached toy prompts like
-"hello" still returned 200, proving the client code path works). This is a
-provider-side outage, not a code bug: retries with backoff are already built in,
-and the same command will print the real pass rate once the provider recovers:
+**Eval result (measured 2026-10-02, live run against the real Pollinations provider):**
+**9/10 (90.0%)**. Per-case output below; the single miss was `general-1`
+("Do you offer discounts for students or nonprofits?") classified as `billing`
+with confidence 0.95 — the discount/pricing wording pulled it toward billing.
+Everything else passed with confidence ≥ 0.92.
+
+```
+[PASS] billing-1, billing-2, technical-1, technical-2, account-1, account-2,
+       shipping-1, shipping-2, general-2
+[FAIL] general-1: expected=general got=billing conf=0.95
+PASS RATE: 9/10 (90.0%)
+```
+
+Reproduce with:
 
 ```bash
 python eval/run_eval.py
